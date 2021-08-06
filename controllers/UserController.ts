@@ -1,9 +1,10 @@
 import express from 'express';
+import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
 import { mongoose } from '../core/db';
 
 import { generateMD5 } from './../utils/generateHash';
-import { UserModel } from './../models/UserModels';
+import { UserModel, UserModelDocumentInterface } from './../models/UserModels';
 import { sendEmail } from '../utils/sendEmail';
 
 const isValidObjectId = mongoose.Types.ObjectId.isValid;
@@ -79,7 +80,7 @@ class UserController {
           subject: 'Подтвержение почты Twitter Clone',
           html: `Для того, чтобы подтвердить почту, перейдите <a href="http://localhost:${
             process.env.PORT || 8888
-          }/users/verify?hash=${data.confirmHash}">по этой ссылке</a>`,
+          }/auth/verify?hash=${data.confirmHash}">по этой ссылке</a>`,
         },
         err => {
           if (err) {
@@ -126,6 +127,48 @@ class UserController {
           .status(404)
           .json({ status: 'error', message: 'Пользователь не найден' });
       }
+    } catch (err) {
+      res.status(500).json({
+        status: 'error',
+        message: JSON.stringify(err),
+      });
+    }
+  }
+
+  async afterLogin(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      const user = req.user
+        ? (req.user as UserModelDocumentInterface).toJSON()
+        : undefined;
+      res.json({
+        status: 'success',
+        data: {
+          ...user,
+          token: jwt.sign({ data: user }, process.env.SECRET_KEY || '123', {
+            expiresIn: '30 days',
+          }),
+        },
+      });
+    } catch (err) {
+      res.status(500).json({
+        status: 'error',
+        message: JSON.stringify(err),
+      });
+    }
+  }
+
+  async getUserInfo(
+    req: express.Request,
+    res: express.Response
+  ): Promise<void> {
+    try {
+      const user = req.user
+        ? (req.user as UserModelDocumentInterface).toJSON()
+        : undefined;
+      res.json({
+        status: 'success',
+        data: user,
+      });
     } catch (err) {
       res.status(500).json({
         status: 'error',
