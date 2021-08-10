@@ -1,13 +1,11 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
-import { mongoose } from '../core/db';
 
 import { generateMD5 } from './../utils/generateHash';
 import { UserModel, UserModelDocumentInterface } from './../models/UserModels';
 import { sendEmail } from '../utils/sendEmail';
-
-const isValidObjectId = mongoose.Types.ObjectId.isValid;
+import { isValidObjectId } from '../utils/isValidObjectId';
 
 class UserController {
   async index(_: any, res: express.Response): Promise<void> {
@@ -118,7 +116,7 @@ class UserController {
 
       if (user) {
         user.confirmed = true;
-        user.save();
+        await user.save();
         res.json({
           status: 'success',
         });

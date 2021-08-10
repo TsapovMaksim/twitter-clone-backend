@@ -2,7 +2,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { registerValidations } from './validations/register';
+import { createTweetValidations } from './validations/createTweet';
 import { UserCtrl } from './controllers/UserController';
+import { TweetsCtrl } from './controllers/TweetsController';
 import express from 'express';
 import './core/db';
 import { passport } from './core/passport';
@@ -19,6 +21,22 @@ app.get(
   UserCtrl.getUserInfo
 );
 app.get('/users/:id', UserCtrl.show);
+
+app.get('/tweets', TweetsCtrl.index);
+app.get('/tweets/:id', TweetsCtrl.show);
+app.delete('/tweets/:id', passport.authenticate('jwt'), TweetsCtrl.delete);
+app.patch(
+  '/tweets/:id',
+  passport.authenticate('jwt'),
+  createTweetValidations,
+  TweetsCtrl.update
+);
+app.post(
+  '/tweets',
+  passport.authenticate('jwt'),
+  createTweetValidations,
+  TweetsCtrl.create
+);
 
 app.get('/auth/verify', registerValidations, UserCtrl.verify);
 app.post('/auth/register', registerValidations, UserCtrl.create);

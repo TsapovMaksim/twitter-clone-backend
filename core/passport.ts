@@ -16,9 +16,9 @@ passport.use(
       }
 
       if (user.password === generateMD5(password + process.env.SECRET_KEY)) {
-        done(null, user);
+        return done(null, user);
       } else {
-        done(null, false);
+        return done(null, false);
       }
     } catch (error) {
       return done(error, false);
@@ -39,9 +39,9 @@ passport.use(
           return done(null, user);
         }
 
-        done(null, false);
+        return done(null, false);
       } catch (error) {
-        done(error, false);
+        return done(error, false);
       }
     }
   )
@@ -54,7 +54,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser((id, done) => {
   UserModel.findById(id, (err: any, user: any) => {
-    done(err, user);
+    return done(err, user);
   });
 });
 
